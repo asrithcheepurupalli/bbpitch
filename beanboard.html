@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BeanBoard Smart Table System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cream: #F5EDD8;
+    --cream-light: #FBF7EE;
+    --espresso: #1A0F08;
+    --dark-brown: #2C1810;
+    --mid-brown: #4A2C1C;
+    --amber: #C8781A;
+    --amber-light: #E8A84A;
+    --amber-pale: #FDE8BC;
+    --sage: #5C7A5A;
+    --sage-light: #8FAF8C;
+    --red: #C0392B;
+    --white: #FFFFFF;
+    --glass: rgba(255,255,255,0.06);
+    --glass-border: rgba(255,255,255,0.12);
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--espresso);
+    color: var(--cream);
+    font-family: 'DM Sans', sans-serif;
+    overflow: hidden;
+  }
+
+  /* NAV */
+  .nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 32px;
+    background: rgba(26,15,8,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--glass-border);
+    z-index: 100;
+  }
+  .nav-logo { display: flex; align-items: center; gap: 10px; }
+  .nav-logo-icon { width: 28px; height: 28px; }
+  .nav-brand { font-family: 'Playfair Display', serif; font-size: 18px; color: var(--amber-light); }
+  .nav-pills { display: flex; gap: 4px; }
+  .nav-pill {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--glass-border); cursor: pointer;
+    transition: all 0.3s;
+  }
+  .nav-pill.active { background: var(--amber-light); transform: scale(1.3); }
+  .nav-controls { display: flex; gap: 8px; }
+  .nav-btn {
+    background: var(--glass); border: 1px solid var(--glass-border);
+    color: var(--cream); padding: 6px 16px; border-radius: 20px;
+    font-size: 13px; cursor: pointer; transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .nav-btn:hover { background: var(--amber); border-color: var(--amber); color: var(--espresso); }
+
+  /* SLIDES */
+  .slides { width: 100%; height: 100%; position: relative; }
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    padding: 80px 60px 40px;
+    overflow-y: auto;
+    opacity: 0; pointer-events: none;
+    transform: translateY(24px);
+    transition: opacity 0.5s, transform 0.5s;
+  }
+  .slide.active {
+    opacity: 1; pointer-events: all;
+    transform: translateY(0);
+  }
+
+  /* TYPOGRAPHY */
+  .eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px; letter-spacing: 3px;
+    color: var(--amber); text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .headline {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(36px, 5vw, 64px);
+    line-height: 1.1; color: var(--cream);
+    margin-bottom: 20px;
+  }
+  .headline em { color: var(--amber-light); font-style: normal; }
+  .subhead {
+    font-size: 18px; color: rgba(245,237,216,0.65);
+    line-height: 1.6; max-width: 560px;
+  }
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px; letter-spacing: 2px;
+    color: var(--amber); text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  /* ---- SLIDE 0: COVER ---- */
+  #s0 {
+    align-items: center; justify-content: center;
+    text-align: center; background: var(--espresso);
+  }
+  .cover-logo { margin-bottom: 32px; }
+  .cover-cup {
+    width: 90px; height: 90px;
+    background: linear-gradient(145deg, #2C1810, #4A2C1C);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px;
+    border: 2px solid var(--amber);
+    animation: breathe 3s ease-in-out infinite;
+  }
+  @keyframes breathe { 0%,100%{box-shadow:0 0 0 0 rgba(200,120,26,0.3)} 50%{box-shadow:0 0 0 20px rgba(200,120,26,0)} }
+  .cover-tagline {
+    font-size: 13px; letter-spacing: 2px;
+    color: var(--amber); font-family: 'DM Mono', monospace;
+    text-transform: uppercase; margin-bottom: 48px;
+  }
+  .cover-btns { display: flex; gap: 12px; justify-content: center; }
+  .btn-primary {
+    background: var(--amber); color: var(--espresso);
+    border: none; padding: 12px 28px;
+    border-radius: 30px; font-size: 14px; font-weight: 600;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+  }
+  .btn-primary:hover { background: var(--amber-light); transform: translateY(-1px); }
+  .btn-ghost {
+    background: transparent; color: var(--cream);
+    border: 1px solid var(--glass-border); padding: 12px 28px;
+    border-radius: 30px; font-size: 14px;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+  }
+  .btn-ghost:hover { border-color: var(--amber); color: var(--amber); }
+  .cover-grid {
+    display: grid; grid-template-columns: repeat(4,1fr);
+    gap: 12px; max-width: 480px; margin: 40px auto 0;
+  }
+  .cover-stat {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px; padding: 14px 10px; text-align: center;
+  }
+  .cover-stat-num { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--amber-light); }
+  .cover-stat-lbl { font-size: 10px; color: rgba(245,237,216,0.5); margin-top: 2px; }
+
+  /* ---- SLIDE 1: PROBLEM ---- */
+  #s1 { background: var(--espresso); }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+  .problem-list { display: flex; flex-direction: column; gap: 16px; margin-top: 32px; }
+  .problem-item {
+    display: flex; align-items: flex-start; gap: 14px;
+    background: rgba(192,57,43,0.1); border: 1px solid rgba(192,57,43,0.25);
+    border-radius: 14px; padding: 16px 18px;
+    animation: fadeUp 0.5s ease both;
+  }
+  .problem-item:nth-child(2){animation-delay:.1s}
+  .problem-item:nth-child(3){animation-delay:.2s}
+  .problem-item:nth-child(4){animation-delay:.3s}
+  @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
+  .problem-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: rgba(192,57,43,0.2); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .problem-title { font-size: 14px; font-weight: 600; color: var(--cream); margin-bottom: 3px; }
+  .problem-desc { font-size: 12px; color: rgba(245,237,216,0.55); }
+  .impact-box {
+    background: linear-gradient(135deg, rgba(192,57,43,0.15), rgba(192,57,43,0.05));
+    border: 1px solid rgba(192,57,43,0.3);
+    border-radius: 16px; padding: 28px; margin-top: 32px;
+  }
+  .impact-title { font-family: 'Playfair Display', serif; font-size: 22px; color: #E74C3C; margin-bottom: 16px; }
+  .impact-metric { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .impact-bar-wrap { flex: 1; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; }
+  .impact-bar { height: 100%; background: #E74C3C; border-radius: 3px; }
+  .impact-label { font-size: 12px; color: rgba(245,237,216,0.6); min-width: 120px; }
+  .impact-val { font-size: 12px; color: #E74C3C; min-width: 36px; text-align: right; }
+
+  /* ---- SLIDE 2: SOLUTION ---- */
+  #s2 {}
+  .flow-wrap { display: flex; align-items: center; gap: 0; margin-top: 32px; }
+  .flow-step {
+    flex: 1; text-align: center; padding: 20px 12px;
+    background: var(--glass); border: 1px solid var(--glass-border);
+    border-radius: 16px; position: relative;
+  }
+  .flow-step:not(:last-child)::after {
+    content: '→';
+    position: absolute; right: -22px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--amber); font-size: 20px; z-index: 1;
+  }
+  .flow-step + .flow-step { margin-left: 32px; }
+  .flow-icon { font-size: 28px; margin-bottom: 8px; }
+  .flow-label { font-size: 13px; font-weight: 500; color: var(--cream); }
+  .flow-sub { font-size: 11px; color: rgba(245,237,216,0.5); margin-top: 4px; }
+
+  /* QR DEMO */
+  .demo-container { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 28px; }
+  .phone-frame {
+    background: #0D0905;
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 28px; overflow: hidden;
+    max-width: 220px; margin: 0 auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .phone-notch {
+    height: 20px; background: #0D0905;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .phone-notch-inner { width: 60px; height: 10px; background: #1a0f08; border-radius: 0 0 8px 8px; }
+  .phone-screen { background: #FBF7EE; color: #1A0F08; padding: 0 0 16px; }
+  .phone-header {
+    background: var(--amber); color: white;
+    padding: 12px 16px; text-align: center;
+  }
+  .phone-header h3 { font-size: 14px; font-weight: 700; font-family: 'Playfair Display',serif; }
+  .phone-header p { font-size: 10px; opacity: 0.85; margin-top: 2px; }
+  .phone-table-badge {
+    margin: 12px 16px 8px;
+    background: #F5EDD8; border-radius: 10px;
+    padding: 8px 12px; text-align: center;
+  }
+  .phone-table-badge .t-num { font-family: 'Playfair Display',serif; font-size: 20px; color: var(--amber); font-weight: 700; }
+  .phone-table-badge .t-lbl { font-size: 10px; color: #666; }
+  .phone-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 4px 16px; }
+  .phone-btn {
+    padding: 10px 6px; border-radius: 12px;
+    border: none; cursor: pointer;
+    font-size: 11px; font-weight: 600;
+    transition: all 0.15s; font-family: 'DM Sans',sans-serif;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .phone-btn .p-icon { font-size: 18px; }
+  .phone-btn.waiter { background: #C8781A; color: white; }
+  .phone-btn.water { background: #2980B9; color: white; }
+  .phone-btn.tissue { background: #8E44AD; color: white; }
+  .phone-btn.bill { background: #27AE60; color: white; }
+  .phone-btn:hover { transform: scale(0.96); filter: brightness(1.1); }
+  .phone-btn:active { transform: scale(0.93); }
+  .phone-toast {
+    margin: 10px 16px 0;
+    background: #27AE60; color: white;
+    border-radius: 10px; padding: 8px 12px;
+    font-size: 11px; text-align: center;
+    opacity: 0; transition: opacity 0.3s; font-weight: 500;
+  }
+  .phone-toast.show { opacity: 1; }
+  .phone-menu-link {
+    margin: 8px 16px 0;
+    padding: 8px; background: #F5EDD8; border-radius: 10px;
+    text-align: center; font-size: 11px; color: var(--amber);
+    font-weight: 600; cursor: pointer;
+  }
+
+  /* STAFF DASHBOARD */
+  .dashboard-frame {
+    background: #0F0A06;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px; overflow: hidden;
+  }
+  .dash-header {
+    background: #1A0F08; padding: 12px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .dash-title { font-size: 13px; font-weight: 600; color: var(--amber-light); }
+  .dash-live { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #27AE60; }
+  .live-dot { width: 7px; height: 7px; border-radius: 50%; background: #27AE60; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .dash-requests { padding: 10px; display: flex; flex-direction: column; gap: 8px; min-height: 200px; }
+  .request-card {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px; padding: 10px 12px;
+    animation: slideIn 0.4s ease both;
+  }
+  @keyframes slideIn { from{opacity:0;transform:translateX(-10px)} to{opacity:1;transform:none} }
+  .req-table {
+    width: 34px; height: 34px; border-radius: 8px;
+    background: var(--amber); color: var(--espresso);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; flex-shrink: 0;
+  }
+  .req-info { flex: 1; }
+  .req-type { font-size: 12px; font-weight: 600; color: var(--cream); }
+  .req-time { font-size: 10px; color: rgba(245,237,216,0.45); }
+  .req-badge {
+    font-size: 10px; padding: 3px 8px; border-radius: 6px;
+    font-weight: 600; flex-shrink: 0;
+  }
+  .req-badge.urgent { background: rgba(192,57,43,0.2); color: #E74C3C; }
+  .req-badge.normal { background: rgba(39,174,96,0.15); color: #27AE60; }
+  .req-done-btn {
+    width: 28px; height: 28px; border-radius: 7px;
+    background: rgba(39,174,96,0.15); border: 1px solid rgba(39,174,96,0.3);
+    color: #27AE60; cursor: pointer; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; flex-shrink: 0;
+  }
+  .req-done-btn:hover { background: #27AE60; color: white; }
+  .dash-empty { text-align: center; color: rgba(245,237,216,0.3); font-size: 13px; padding: 40px 20px; }
+  .dash-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; padding: 0 10px 10px; }
+  .dash-stat { background: rgba(255,255,255,0.04); border-radius: 10px; padding: 10px; text-align: center; }
+  .dash-stat-num { font-family: 'Playfair Display',serif; font-size: 20px; color: var(--amber-light); }
+  .dash-stat-lbl { font-size: 10px; color: rgba(245,237,216,0.4); margin-top: 2px; }
+  .dash-footer { padding: 8px 10px; border-top: 1px solid rgba(255,255,255,0.06); }
+  .dash-sim-btn {
+    width: 100%; padding: 9px; background: rgba(200,120,26,0.15);
+    border: 1px solid rgba(200,120,26,0.3); border-radius: 10px;
+    color: var(--amber); font-size: 12px; font-weight: 600;
+    cursor: pointer; font-family: 'DM Sans',sans-serif; transition: all 0.2s;
+  }
+  .dash-sim-btn:hover { background: var(--amber); color: var(--espresso); }
+
+  /* ---- SLIDE 3: PILOT PLAN ---- */
+  #s3 {}
+  .timeline { display: flex; gap: 0; margin-top: 32px; }
+  .timeline-phase {
+    flex: 1; position: relative; padding: 24px;
+    background: var(--glass); border: 1px solid var(--glass-border);
+    border-radius: 16px;
+  }
+  .timeline-phase + .timeline-phase { margin-left: 20px; }
+  .phase-badge {
+    display: inline-block; font-size: 10px; letter-spacing: 1px;
+    font-family: 'DM Mono', monospace; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 20px; margin-bottom: 12px;
+  }
+  .phase-1 .phase-badge { background: rgba(200,120,26,0.2); color: var(--amber); }
+  .phase-2 .phase-badge { background: rgba(92,122,90,0.2); color: var(--sage-light); }
+  .phase-title { font-family: 'Playfair Display', serif; font-size: 20px; margin-bottom: 16px; }
+  .phase-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .phase-list li {
+    display: flex; gap: 10px; align-items: flex-start;
+    font-size: 13px; color: rgba(245,237,216,0.75);
+  }
+  .phase-list li::before { content: '–'; color: var(--amber); flex-shrink: 0; }
+  .phase-metric {
+    margin-top: 20px; padding: 14px;
+    background: rgba(255,255,255,0.04); border-radius: 12px;
+    display: flex; gap: 16px;
+  }
+  .pm-item { text-align: center; flex: 1; }
+  .pm-num { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--amber-light); }
+  .pm-lbl { font-size: 10px; color: rgba(245,237,216,0.45); margin-top: 2px; }
+
+  /* Build Timeline */
+  .build-timeline { margin-top: 32px; }
+  .build-day {
+    display: flex; align-items: stretch; gap: 16px; margin-bottom: 0;
+    position: relative;
+  }
+  .build-day:not(:last-child) { padding-bottom: 20px; }
+  .build-day-line {
+    display: flex; flex-direction: column; align-items: center;
+    width: 32px; flex-shrink: 0;
+  }
+  .build-day-dot {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--amber); color: var(--espresso);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; flex-shrink: 0;
+  }
+  .build-day-stem {
+    flex: 1; width: 2px; background: rgba(200,120,26,0.25);
+    margin-top: 4px;
+  }
+  .build-day-content {
+    background: var(--glass); border: 1px solid var(--glass-border);
+    border-radius: 14px; padding: 16px 18px; flex: 1;
+  }
+  .build-day-title { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  .build-day-desc { font-size: 12px; color: rgba(245,237,216,0.55); }
+
+  /* ---- SLIDE 4: BENEFITS ---- */
+  #s4 {}
+  .benefits-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-top: 28px; }
+  .benefit-card {
+    background: var(--glass); border: 1px solid var(--glass-border);
+    border-radius: 18px; padding: 22px;
+    transition: transform 0.2s, border-color 0.2s;
+    cursor: default;
+  }
+  .benefit-card:hover { transform: translateY(-3px); border-color: var(--amber); }
+  .benefit-icon { font-size: 28px; margin-bottom: 12px; }
+  .benefit-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+  .benefit-desc { font-size: 12px; color: rgba(245,237,216,0.55); line-height: 1.5; }
+  .benefit-metric {
+    margin-top: 14px; font-family: 'Playfair Display', serif;
+    font-size: 26px; color: var(--amber-light);
+  }
+  .benefit-metric-lbl { font-size: 10px; color: rgba(245,237,216,0.4); font-family: 'DM Sans',sans-serif; }
+  .future-row { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
+  .future-chip {
+    background: var(--glass); border: 1px dashed var(--glass-border);
+    border-radius: 30px; padding: 8px 16px;
+    font-size: 12px; color: rgba(245,237,216,0.5);
+    display: flex; align-items: center; gap: 7px;
+  }
+  .future-chip-icon { font-size: 14px; }
+
+  /* ---- SLIDE 5: PERSONALIZATION ---- */
+  #s5 {}
+  .persona-demo { display: grid; grid-template-columns: 240px 1fr; gap: 32px; margin-top: 28px; }
+  .loyalty-phone { max-width: 240px; }
+  .lp-screen { background: #FBF7EE; color: #1A0F08; border-radius: 20px; overflow: hidden; border: 2px solid rgba(255,255,255,0.15); }
+  .lp-header { background: var(--amber); padding: 14px 16px; }
+  .lp-welcome { font-family: 'Playfair Display',serif; font-size: 16px; color: white; font-weight: 700; }
+  .lp-sub { font-size: 11px; color: rgba(255,255,255,0.8); margin-top: 2px; }
+  .lp-body { padding: 14px 16px; }
+  .lp-last-order { background: #F5EDD8; border-radius: 10px; padding: 12px; margin-bottom: 12px; }
+  .lp-last-lbl { font-size: 10px; color: #666; margin-bottom: 4px; }
+  .lp-last-item { font-size: 14px; font-weight: 700; color: #1A0F08; }
+  .lp-reorder {
+    width: 100%; padding: 10px; background: var(--amber);
+    border: none; border-radius: 10px; color: white;
+    font-weight: 700; font-size: 13px; cursor: pointer; font-family: 'DM Sans',sans-serif;
+  }
+  .lp-reorder:hover { background: var(--amber-light); }
+  .lp-visits { display: flex; gap: 8px; margin-top: 12px; }
+  .lp-visit-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .lp-visit-dot.done { background: var(--amber); }
+  .lp-visit-dot.todo { background: #DDD; }
+  .lp-visits-lbl { font-size: 10px; color: #666; margin-top: 6px; }
+  .persona-benefits { display: flex; flex-direction: column; gap: 14px; }
+  .persona-item {
+    display: flex; align-items: flex-start; gap: 14px;
+    background: var(--glass); border: 1px solid var(--glass-border);
+    border-radius: 14px; padding: 16px;
+  }
+  .persona-item-icon { font-size: 22px; flex-shrink: 0; }
+  .persona-item-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .persona-item-desc { font-size: 12px; color: rgba(245,237,216,0.55); }
+
+  /* ---- SLIDE 6: CTA ---- */
+  #s6 {
+    align-items: center; justify-content: center; text-align: center;
+  }
+  .cta-steps { display: flex; gap: 20px; margin: 40px 0; justify-content: center; flex-wrap: wrap; }
+  .cta-step { text-align: center; max-width: 140px; }
+  .cta-step-num {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--amber); color: var(--espresso);
+    font-family: 'Playfair Display', serif; font-size: 20px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 10px;
+  }
+  .cta-step-lbl { font-size: 12px; color: rgba(245,237,216,0.65); line-height: 1.4; }
+  .cta-quote {
+    font-family: 'Playfair Display', serif; font-size: 22px;
+    color: var(--amber-light); max-width: 500px; line-height: 1.4;
+    margin: 0 auto 32px;
+  }
+  .cta-setup {
+    display: flex; gap: 24px; justify-content: center; margin-top: 32px; flex-wrap: wrap;
+  }
+  .cta-setup-item { text-align: center; }
+  .cta-setup-num { font-family: 'Playfair Display',serif; font-size: 30px; color: var(--amber-light); }
+  .cta-setup-lbl { font-size: 11px; color: rgba(245,237,216,0.45); }
+
+  /* FOOTER PROGRESS */
+  .progress-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    height: 3px; background: rgba(255,255,255,0.08);
+    z-index: 100;
+  }
+  .progress-fill { height: 100%; background: var(--amber); transition: width 0.4s ease; }
+
+  /* KEYBOARD HINT */
+  .kbd-hint {
+    position: fixed; bottom: 16px; right: 24px;
+    font-size: 11px; color: rgba(245,237,216,0.3);
+    font-family: 'DM Mono', monospace;
+    z-index: 50;
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">
+    <svg class="nav-logo-icon" viewBox="0 0 28 28" fill="none">
+      <circle cx="14" cy="14" r="13" stroke="#C8781A" stroke-width="1.5"/>
+      <path d="M9 18 Q14 10 19 18" stroke="#C8781A" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <circle cx="14" cy="13" r="2.5" fill="#C8781A" opacity="0.6"/>
+    </svg>
+    <span class="nav-brand">BeanBoard</span>
+  </div>
+  <div class="nav-pills" id="navPills"></div>
+  <div class="nav-controls">
+    <button class="nav-btn" onclick="prevSlide()">← Back</button>
+    <button class="nav-btn" onclick="nextSlide()">Next →</button>
+  </div>
+</nav>
+
+<!-- SLIDES -->
+<div class="slides">
+
+  <!-- SLIDE 0: COVER -->
+  <div class="slide active" id="s0">
+    <div class="cover-logo">
+      <div class="cover-cup">
+        <svg width="42" height="42" viewBox="0 0 42 42" fill="none">
+          <path d="M8 14h26l-3 16H11L8 14z" fill="#C8781A" opacity="0.9"/>
+          <path d="M30 18h4a3 3 0 010 6h-4" stroke="#C8781A" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M13 8 Q21 4 29 8" stroke="#E8A84A" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+    <div class="eyebrow">Smart Table System · Pilot Proposal</div>
+    <div class="headline">Make <em>BeanBoard</em><br>the café customers<br>never want to leave.</div>
+    <div class="subhead">A simple QR-based system that makes ordering instant, staff tasks clear, and every visit feel personal.</div>
+    <div class="cover-btns" style="margin-top: 32px;">
+      <button class="btn-primary" onclick="nextSlide()">See the pitch →</button>
+      <button class="btn-ghost" onclick="goToSlide(2)">Jump to demo</button>
+    </div>
+    <div class="cover-grid">
+      <div class="cover-stat"><div class="cover-stat-num">3</div><div class="cover-stat-lbl">Days to build</div></div>
+      <div class="cover-stat"><div class="cover-stat-num">₹0</div><div class="cover-stat-lbl">Hardware cost</div></div>
+      <div class="cover-stat"><div class="cover-stat-num">5</div><div class="cover-stat-lbl">Tables pilot</div></div>
+      <div class="cover-stat"><div class="cover-stat-num">∞</div><div class="cover-stat-lbl">Upside</div></div>
+    </div>
+  </div>
+
+  <!-- SLIDE 1: PROBLEM -->
+  <div class="slide" id="s1">
+    <div class="eyebrow">The real problem</div>
+    <div class="headline">Customers leave money<br>on the table.<br><em>Literally.</em></div>
+    <div class="two-col">
+      <div>
+        <div class="problem-list">
+          <div class="problem-item">
+            <div class="problem-icon">👋</div>
+            <div>
+              <div class="problem-title">Invisible customers</div>
+              <div class="problem-desc">People wave for minutes before getting attention. They get frustrated and leave.</div>
+            </div>
+          </div>
+          <div class="problem-item">
+            <div class="problem-icon">🔄</div>
+            <div>
+              <div class="problem-title">Staff guessing work</div>
+              <div class="problem-desc">Staff roam without clear tasks — inefficient and stressful during peak hours.</div>
+            </div>
+          </div>
+          <div class="problem-item">
+            <div class="problem-icon">🤐</div>
+            <div>
+              <div class="problem-title">Hesitation to reorder</div>
+              <div class="problem-desc">Customers skip second orders because calling staff feels awkward or inconvenient.</div>
+            </div>
+          </div>
+          <div class="problem-item">
+            <div class="problem-icon">💧</div>
+            <div>
+              <div class="problem-title">Micro-needs ignored</div>
+              <div class="problem-desc">Water, tissues, bill — small requests pile up and chip away at the experience.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="impact-box" style="margin-top: 32px;">
+        <div class="impact-title">What this actually costs</div>
+        <div class="impact-metric">
+          <span class="impact-label">Missed reorders</span>
+          <div class="impact-bar-wrap"><div class="impact-bar" style="width: 75%"></div></div>
+          <span class="impact-val">~75%</span>
+        </div>
+        <div class="impact-metric">
+          <span class="impact-label">Staff time wasted</span>
+          <div class="impact-bar-wrap"><div class="impact-bar" style="width: 60%"></div></div>
+          <span class="impact-val">~60%</span>
+        </div>
+        <div class="impact-metric">
+          <span class="impact-label">Customers who don't return</span>
+          <div class="impact-bar-wrap"><div class="impact-bar" style="width: 40%"></div></div>
+          <span class="impact-val">~40%</span>
+        </div>
+        <div style="margin-top: 20px; padding: 14px; background: rgba(192,57,43,0.12); border-radius: 10px; font-size: 13px; color: rgba(245,237,216,0.7); line-height: 1.6;">
+          These aren't just annoyances — they're measurable revenue leaks in every café that hasn't solved this.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 2: DEMO -->
+  <div class="slide" id="s2">
+    <div class="eyebrow">Live demo — try it yourself</div>
+    <div class="headline">Two screens.<br><em>Zero confusion.</em></div>
+    <div class="demo-container">
+      <!-- Customer Phone -->
+      <div>
+        <div class="section-label" style="text-align:center; margin-bottom: 12px;">Customer's Phone (after QR scan)</div>
+        <div class="phone-frame">
+          <div class="phone-notch"><div class="phone-notch-inner"></div></div>
+          <div class="phone-screen">
+            <div class="phone-header">
+              <h3>BeanBoard ☕</h3>
+              <p>Tap to request — we'll be right there</p>
+            </div>
+            <div class="phone-table-badge">
+              <div class="t-num">Table 3</div>
+              <div class="t-lbl">Scan more QR to switch tables</div>
+            </div>
+            <div class="phone-actions">
+              <button class="phone-btn waiter" onclick="sendRequest('T3','Call Waiter','urgent')">
+                <span class="p-icon">🛎</span>Call Waiter
+              </button>
+              <button class="phone-btn water" onclick="sendRequest('T3','Water','normal')">
+                <span class="p-icon">💧</span>Water
+              </button>
+              <button class="phone-btn tissue" onclick="sendRequest('T3','Tissues','normal')">
+                <span class="p-icon">🧻</span>Tissues
+              </button>
+              <button class="phone-btn bill" onclick="sendRequest('T3','Bill','normal')">
+                <span class="p-icon">💵</span>Bill
+              </button>
+            </div>
+            <div class="phone-menu-link" onclick="showMenuNote()">📋 View Full Menu</div>
+            <div class="phone-toast" id="phoneToast">✓ Request sent! Staff notified.</div>
+          </div>
+        </div>
+        <div style="text-align:center; margin-top: 12px; font-size: 11px; color: rgba(245,237,216,0.4); font-family: 'DM Mono',monospace;">
+          ↑ Tap any button to see it in action
+        </div>
+      </div>
+      <!-- Staff Dashboard -->
+      <div>
+        <div class="section-label" style="text-align:center; margin-bottom: 12px;">Staff Dashboard (counter screen)</div>
+        <div class="dashboard-frame">
+          <div class="dash-header">
+            <div class="dash-title">Live Requests</div>
+            <div class="dash-live"><div class="live-dot"></div>Live</div>
+          </div>
+          <div class="dash-requests" id="dashRequests">
+            <div class="dash-empty" id="dashEmpty">No pending requests.<br>Tap buttons on the phone to simulate.</div>
+          </div>
+          <div class="dash-stats">
+            <div class="dash-stat"><div class="dash-stat-num" id="statPending">0</div><div class="dash-stat-lbl">Pending</div></div>
+            <div class="dash-stat"><div class="dash-stat-num" id="statDone">0</div><div class="dash-stat-lbl">Resolved</div></div>
+            <div class="dash-stat"><div class="dash-stat-num" id="statAvg">—</div><div class="dash-stat-lbl">Avg response</div></div>
+          </div>
+          <div class="dash-footer">
+            <button class="dash-sim-btn" onclick="simulateRequests()">⚡ Simulate busy café</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 3: PILOT -->
+  <div class="slide" id="s3">
+    <div class="eyebrow">The plan</div>
+    <div class="headline">Start small.<br>Prove it works.<br><em>Then scale.</em></div>
+    <div class="timeline">
+      <div class="timeline-phase phase-1">
+        <div class="phase-badge">Phase 1 · Week 1</div>
+        <div class="phase-title">🧪 Pilot — 5 Tables</div>
+        <ul class="phase-list">
+          <li>QR codes on 5 tables only</li>
+          <li>Run for 3–5 days quietly</li>
+          <li>Watch real customer behaviour</li>
+          <li>Measure staff response time</li>
+          <li>Collect early feedback</li>
+        </ul>
+        <div class="phase-metric">
+          <div class="pm-item"><div class="pm-num">5</div><div class="pm-lbl">Tables</div></div>
+          <div class="pm-item"><div class="pm-num">3–5</div><div class="pm-lbl">Test days</div></div>
+          <div class="pm-item"><div class="pm-num">0</div><div class="pm-lbl">Extra cost</div></div>
+        </div>
+      </div>
+      <div class="timeline-phase phase-2">
+        <div class="phase-badge">Phase 2 · After results</div>
+        <div class="phase-title">🚀 Full Café Rollout</div>
+        <ul class="phase-list">
+          <li>All tables get QR codes</li>
+          <li>Refine UI based on feedback</li>
+          <li>Train full staff team</li>
+          <li>Turn on personalization</li>
+          <li>Optional: menu integration</li>
+        </ul>
+        <div class="phase-metric">
+          <div class="pm-item"><div class="pm-num">All</div><div class="pm-lbl">Tables</div></div>
+          <div class="pm-item"><div class="pm-num">Full</div><div class="pm-lbl">Staff use</div></div>
+          <div class="pm-item"><div class="pm-num">Live</div><div class="pm-lbl">Analytics</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 32px;">
+      <div class="eyebrow">Build timeline</div>
+      <div class="build-timeline">
+        <div class="build-day">
+          <div class="build-day-line">
+            <div class="build-day-dot">1</div>
+            <div class="build-day-stem"></div>
+          </div>
+          <div class="build-day-content">
+            <div class="build-day-title">QR Page + Customer UI</div>
+            <div class="build-day-desc">Mobile-first web app, table identification, request buttons, receipt-style UX.</div>
+          </div>
+        </div>
+        <div class="build-day">
+          <div class="build-day-line">
+            <div class="build-day-dot">2</div>
+            <div class="build-day-stem"></div>
+          </div>
+          <div class="build-day-content">
+            <div class="build-day-title">Live Request System</div>
+            <div class="build-day-desc">Real-time request delivery, push notifications to staff device, request queue.</div>
+          </div>
+        </div>
+        <div class="build-day">
+          <div class="build-day-line">
+            <div class="build-day-dot">3</div>
+            <div style="flex:1"></div>
+          </div>
+          <div class="build-day-content">
+            <div class="build-day-title">Staff Dashboard + Go Live</div>
+            <div class="build-day-desc">Counter screen, dismiss requests, basic stats. Print QR codes. Pilot begins.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: BENEFITS -->
+  <div class="slide" id="s4">
+    <div class="eyebrow">Why it's worth it</div>
+    <div class="headline">BeanBoard gets<br><em>smarter</em> for you.</div>
+    <div class="benefits-grid">
+      <div class="benefit-card">
+        <div class="benefit-icon">⚡</div>
+        <div class="benefit-title">Faster service</div>
+        <div class="benefit-desc">Every request goes directly to staff with zero shouting or guessing.</div>
+        <div class="benefit-metric">3×<div class="benefit-metric-lbl">faster response time</div></div>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">📈</div>
+        <div class="benefit-title">More orders</div>
+        <div class="benefit-desc">Low-friction reordering means customers order again without hesitation.</div>
+        <div class="benefit-metric">+25%<div class="benefit-metric-lbl">order frequency (est.)</div></div>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">🧠</div>
+        <div class="benefit-title">Smarter staff</div>
+        <div class="benefit-desc">Staff react to real tasks — no aimless roaming, more efficient shifts.</div>
+        <div class="benefit-metric">100%<div class="benefit-metric-lbl">task clarity</div></div>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">⭐</div>
+        <div class="benefit-title">Better experience</div>
+        <div class="benefit-desc">No awkward hand-waving. Customers feel in control of their visit.</div>
+        <div class="benefit-metric">★ 5<div class="benefit-metric-lbl">the goal</div></div>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">🔁</div>
+        <div class="benefit-title">Repeat customers</div>
+        <div class="benefit-desc">Remembered preferences bring people back and build a loyal base.</div>
+        <div class="benefit-metric">+40%<div class="benefit-metric-lbl">return rate potential</div></div>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">💰</div>
+        <div class="benefit-title">Zero hardware</div>
+        <div class="benefit-desc">Runs entirely on existing phones and a QR printout. No upfront cost.</div>
+        <div class="benefit-metric">₹0<div class="benefit-metric-lbl">hardware investment</div></div>
+      </div>
+    </div>
+    <div>
+      <div class="eyebrow" style="margin-top: 24px; margin-bottom: 10px;">Future add-ons (only if needed)</div>
+      <div class="future-row">
+        <div class="future-chip"><span class="future-chip-icon">💳</span> Payment integration</div>
+        <div class="future-chip"><span class="future-chip-icon">📊</span> Analytics dashboard</div>
+        <div class="future-chip"><span class="future-chip-icon">🎁</span> Loyalty & rewards</div>
+        <div class="future-chip"><span class="future-chip-icon">🍳</span> Kitchen display</div>
+        <div class="future-chip"><span class="future-chip-icon">📱</span> SMS updates</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: PERSONALIZATION -->
+  <div class="slide" id="s5">
+    <div class="eyebrow">Optional feature · Light version</div>
+    <div class="headline">Make every customer<br>feel like a <em>regular.</em></div>
+    <div class="persona-demo">
+      <div class="loyalty-phone">
+        <div class="section-label" style="text-align:center; margin-bottom:10px;">Returning customer sees this</div>
+        <div class="lp-screen">
+          <div class="lp-header">
+            <div class="lp-welcome">Welcome back, Priya 👋</div>
+            <div class="lp-sub">Your 6th visit this month!</div>
+          </div>
+          <div class="lp-body">
+            <div class="lp-last-order">
+              <div class="lp-last-lbl">Last time you ordered</div>
+              <div class="lp-last-item">Cold Coffee + Croissant</div>
+            </div>
+            <button class="lp-reorder" onclick="showReorderToast()">Reorder the usual →</button>
+            <div style="margin-top: 14px;">
+              <div class="lp-last-lbl" style="margin-bottom: 6px;">Loyalty visits</div>
+              <div class="lp-visits">
+                <div class="lp-visit-dot done"></div>
+                <div class="lp-visit-dot done"></div>
+                <div class="lp-visit-dot done"></div>
+                <div class="lp-visit-dot done"></div>
+                <div class="lp-visit-dot done"></div>
+                <div class="lp-visit-dot done"></div>
+                <div class="lp-visit-dot todo"></div>
+                <div class="lp-visit-dot todo"></div>
+                <div class="lp-visit-dot todo"></div>
+                <div class="lp-visit-dot todo" style="background:#DDD"></div>
+              </div>
+              <div class="lp-visits-lbl">4 more visits for a free drink ☕</div>
+            </div>
+          </div>
+        </div>
+        <div id="reorderToast" style="display:none; margin-top:10px; background:#27AE60; color:white; border-radius:10px; padding:10px; text-align:center; font-size:12px; font-weight:600;">
+          ✓ Reorder sent to staff!
+        </div>
+      </div>
+      <div class="persona-benefits">
+        <div style="font-size: 14px; color: rgba(245,237,216,0.65); line-height: 1.7; margin-bottom: 8px;">
+          When a customer enters their mobile number once, the next time they scan any table's QR code, they get a personalised welcome — their name, last order, and an easy reorder button.
+        </div>
+        <div class="persona-item">
+          <div class="persona-item-icon">🔢</div>
+          <div>
+            <div class="persona-item-title">One-time number entry</div>
+            <div class="persona-item-desc">Customers type their number once. Every visit after that is automatic — no app, no login.</div>
+          </div>
+        </div>
+        <div class="persona-item">
+          <div class="persona-item-icon">🧠</div>
+          <div>
+            <div class="persona-item-title">Remembered preferences</div>
+            <div class="persona-item-desc">Last order, visit count, favourite items — surfaced naturally. Makes them feel seen.</div>
+          </div>
+        </div>
+        <div class="persona-item">
+          <div class="persona-item-icon">🔁</div>
+          <div>
+            <div class="persona-item-title">Easy reorder</div>
+            <div class="persona-item-desc">One tap reorders their usual. Staff see it instantly. Zero friction for the customer.</div>
+          </div>
+        </div>
+        <div class="persona-item">
+          <div class="persona-item-icon">🎁</div>
+          <div>
+            <div class="persona-item-title">Loyalty baked in</div>
+            <div class="persona-item-desc">Visit counter + milestone rewards. Simple, visible, and actually motivating.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: CTA -->
+  <div class="slide" id="s6">
+    <div class="eyebrow">Let's make it real</div>
+    <div class="headline" style="font-size: clamp(32px, 4vw, 54px);">
+      BeanBoard deserves to be the<br><em>smartest café</em> in the city.
+    </div>
+    <div class="cta-quote">"Fast, personal, frictionless — that's the experience customers tell their friends about."</div>
+    <div class="cta-steps">
+      <div class="cta-step">
+        <div class="cta-step-num">1</div>
+        <div class="cta-step-lbl">You say yes to the pilot</div>
+      </div>
+      <div style="display:flex; align-items:center; color: var(--amber); font-size: 20px; margin-top: -20px;">→</div>
+      <div class="cta-step">
+        <div class="cta-step-num">2</div>
+        <div class="cta-step-lbl">We build in 3 days</div>
+      </div>
+      <div style="display:flex; align-items:center; color: var(--amber); font-size: 20px; margin-top: -20px;">→</div>
+      <div class="cta-step">
+        <div class="cta-step-num">3</div>
+        <div class="cta-step-lbl">We run a 5-table test</div>
+      </div>
+      <div style="display:flex; align-items:center; color: var(--amber); font-size: 20px; margin-top: -20px;">→</div>
+      <div class="cta-step">
+        <div class="cta-step-num">4</div>
+        <div class="cta-step-lbl">We see results together</div>
+      </div>
+    </div>
+    <div class="cta-setup">
+      <div class="cta-setup-item"><div class="cta-setup-num">3</div><div class="cta-setup-lbl">Days to build</div></div>
+      <div class="cta-setup-item" style="border-left: 1px solid rgba(255,255,255,0.1); padding-left: 24px;"><div class="cta-setup-num">₹0</div><div class="cta-setup-lbl">Hardware needed</div></div>
+      <div class="cta-setup-item" style="border-left: 1px solid rgba(255,255,255,0.1); padding-left: 24px;"><div class="cta-setup-num">5</div><div class="cta-setup-lbl">Tables to start</div></div>
+      <div class="cta-setup-item" style="border-left: 1px solid rgba(255,255,255,0.1); padding-left: 24px;"><div class="cta-setup-num">∞</div><div class="cta-setup-lbl">Potential upside</div></div>
+    </div>
+    <div style="margin-top: 36px; text-align: center;">
+      <div class="eyebrow" style="margin-bottom: 16px;">The demo I'll show you in person</div>
+      <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; font-size: 13px;">
+        <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 10px; padding: 10px 18px; display: flex; align-items: center; gap: 8px;">
+          <span>📱</span> Scan QR live
+        </div>
+        <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 10px; padding: 10px 18px; display: flex; align-items: center; gap: 8px;">
+          <span>💧</span> Tap "Water"
+        </div>
+        <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 10px; padding: 10px 18px; display: flex; align-items: center; gap: 8px;">
+          <span>⚡</span> Watch it appear on staff screen instantly
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- PROGRESS BAR -->
+<div class="progress-bar">
+  <div class="progress-fill" id="progressFill"></div>
+</div>
+
+<div class="kbd-hint">← → arrow keys to navigate</div>
+
+<script>
+  const totalSlides = 7;
+  let current = 0;
+  let doneCount = 0;
+  const requests = [];
+
+  function goToSlide(n) {
+    const slides = document.querySelectorAll('.slide');
+    slides[current].classList.remove('active');
+    current = Math.max(0, Math.min(n, slides.length - 1));
+    slides[current].classList.add('active');
+    updateNav();
+  }
+
+  function nextSlide() { goToSlide(current + 1); }
+  function prevSlide() { goToSlide(current - 1); }
+
+  function updateNav() {
+    const pills = document.querySelectorAll('.nav-pill');
+    pills.forEach((p, i) => p.classList.toggle('active', i === current));
+    const slides = document.querySelectorAll('.slide');
+    const pct = ((current + 1) / slides.length * 100).toFixed(1);
+    document.getElementById('progressFill').style.width = pct + '%';
+  }
+
+  // Build nav pills
+  (function() {
+    const pills = document.getElementById('navPills');
+    const slides = document.querySelectorAll('.slide');
+    slides.forEach((s, i) => {
+      const p = document.createElement('div');
+      p.className = 'nav-pill' + (i === 0 ? ' active' : '');
+      p.onclick = () => goToSlide(i);
+      p.title = ['Cover','Problem','Demo','Pilot','Benefits','Personalization','CTA'][i] || '';
+      pills.appendChild(p);
+    });
+  })();
+
+  // Keyboard nav
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') nextSlide();
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') prevSlide();
+  });
+
+  // Demo: send request
+  function sendRequest(table, type, urgency) {
+    const toast = document.getElementById('phoneToast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+    addRequest(table, type, urgency);
+  }
+
+  function addRequest(table, type, urgency) {
+    const container = document.getElementById('dashRequests');
+    const empty = document.getElementById('dashEmpty');
+    if (empty) empty.style.display = 'none';
+
+    const now = new Date();
+    const timeStr = now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
+    const id = 'req-' + Date.now();
+
+    const card = document.createElement('div');
+    card.className = 'request-card';
+    card.id = id;
+    card.innerHTML = `
+      <div class="req-table">${table}</div>
+      <div class="req-info">
+        <div class="req-type">${type}</div>
+        <div class="req-time">${timeStr}</div>
+      </div>
+      <div class="req-badge ${urgency}">${urgency === 'urgent' ? 'Urgent' : 'Normal'}</div>
+      <button class="req-done-btn" onclick="resolveRequest('${id}')">✓</button>
+    `;
+    container.insertBefore(card, container.firstChild);
+    updateStats(1, 0);
+  }
+
+  function resolveRequest(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.opacity = '0';
+    el.style.transform = 'translateX(20px)';
+    el.style.transition = 'all 0.3s';
+    setTimeout(() => {
+      el.remove();
+      updateStats(-1, 1);
+      const container = document.getElementById('dashRequests');
+      if (!container.querySelector('.request-card')) {
+        const empty = document.getElementById('dashEmpty');
+        if (empty) empty.style.display = '';
+      }
+    }, 300);
+  }
+
+  let pending = 0;
+  let done = 0;
+  function updateStats(pendingDelta, doneDelta) {
+    pending = Math.max(0, pending + pendingDelta);
+    done += doneDelta;
+    document.getElementById('statPending').textContent = pending;
+    document.getElementById('statDone').textContent = done;
+    document.getElementById('statAvg').textContent = pending > 0 ? '~2m' : '—';
+  }
+
+  const simData = [
+    ['T1','Call Waiter','urgent'],
+    ['T4','Bill','normal'],
+    ['T2','Water','normal'],
+    ['T5','Tissues','normal'],
+    ['T3','Reorder Coffee','normal'],
+    ['T1','Water','normal'],
+  ];
+  let simIdx = 0;
+  function simulateRequests() {
+    if (simIdx >= simData.length) { simIdx = 0; }
+    const [table, type, urgency] = simData[simIdx++];
+    addRequest(table, type, urgency);
+  }
+
+  function showMenuNote() {
+    alert('In the real system, this opens your digital menu — photos, prices, and descriptions. No printing needed!');
+  }
+
+  function showReorderToast() {
+    const t = document.getElementById('reorderToast');
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 3000);
+  }
+</script>
+</body>
+</html>
