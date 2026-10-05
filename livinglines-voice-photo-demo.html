@@ -47,6 +47,8 @@
   .voice .play { width: 26px; height: 26px; border-radius: 50%; background: #075e54; color: #fff; display: grid; place-items: center; font-size: 11px; }
   .wave { flex: 1; height: 22px; display: flex; align-items: center; gap: 2px; }
   .wave i { display: block; width: 2px; background: #6aa89f; border-radius: 2px; }
+  .lang { display: inline-block; font-size: 10px; font-weight: 700; background: #e6f4ea; color: #1f7a45; padding: 1px 7px; border-radius: 99px; margin-bottom: 3px; }
+  .en { font-size: 11px; color: #777; border-top: 1px dashed #ddd; margin-top: 4px; padding-top: 3px; }
   .typing { color: var(--muted); font-style: italic; }
   .quote-table { width: 100%; font-size: 12px; border-collapse: collapse; margin: 6px 0; }
   .quote-table td { padding: 3px 0; border-bottom: 1px dotted #ddd; }
@@ -114,8 +116,8 @@
         <h3>Voice-note ordering</h3>
         <div class="sub">For masons, plumbers and contractors who send a voice note instead of typing.</div>
         <ul class="steps" id="steps-voice">
-          <li><div><b>Voice note received</b><span>Contractor sends a Telugu/English voice note on WhatsApp.</span></div></li>
-          <li><div><b>Speech to text</b><span>Mixed Telugu, Hindi and English is transcribed, including trade slang.</span></div></li>
+          <li><div><b>Voice note received</b><span>Contractor sends a Telugu voice note on WhatsApp.</span></div></li>
+          <li><div><b>Speech to text</b><span>Telugu, Hindi and English, even mixed in one sentence, is transcribed in Telugu script, with trade slang. The reply comes back in the customer's language.</span></div></li>
           <li><div><b>Matched to catalog SKUs</b><span>"Elbow", "CP tap", "bag" become real product codes, sizes and units.</span></div></li>
           <li><div><b>Quote built with stock check</b><span>Price, total and availability come back in seconds.</span></div></li>
           <li><div><b>Staff approve, customer confirms</b><span>One tap for staff. Low-confidence items get flagged.</span></div></li>
@@ -190,7 +192,9 @@ async function voiceDemo(my) {
   const typing = add('in', '<span class="typing">Listening to your voice note...</span>');
   stepOn('steps-voice', 2); await wait(1800); if (!ok()) return;
   typing.remove();
-  add('in', `<b>I heard:</b><br><i>"Anna, 20 bags cement, 50 elbow 1 inch, 10 CP taps, and 5 bathroom floor tiles boxes anti-skid."</i>`);
+  add('in', `<span class="lang">Detected: Telugu + English</span><br><b>I heard:</b><br>
+    <span>"అన్నా, 20 బస్తాల సిమెంట్, 50 ఎల్బో 1 ఇంచ్, 10 సీపీ ట్యాపులు, బాత్రూమ్ కోసం 5 బాక్సుల యాంటీ-స్కిడ్ టైల్స్ కావాలి."</span>
+    <div class="en">Translation: Anna, I need 20 bags of cement, 50 1-inch elbows, 10 CP taps, and 5 boxes of anti-skid tiles for the bathroom.</div>`);
   setMatches([
     { name: 'Cement 50kg bag', note: 'qty 20', price: '₹ 7,600', conf: '98% match' },
     { name: 'PVC elbow 1" (pack)', note: 'qty 50', price: '₹ 1,250', conf: '94% match' },
@@ -198,7 +202,7 @@ async function voiceDemo(my) {
     { name: 'Anti-skid floor tile 300x300 (box)', note: 'qty 5', price: '₹ 5,250', conf: '72% match: confirm size', mid: true },
   ]);
   stepOn('steps-voice', 3); await wait(1800); if (!ok()) return;
-  add('in', `Here's your quote:
+  add('in', `మీ కోట్ ఇదిగో / Here's your quote:
     <table class="quote-table">
       <tr><td>Cement 50kg &times; 20</td><td>₹ 7,600</td></tr>
       <tr><td>PVC elbow 1" &times; 50</td><td>₹ 1,250</td></tr>
@@ -206,11 +210,12 @@ async function voiceDemo(my) {
       <tr><td>Anti-skid tile box &times; 5</td><td>₹ 5,250</td></tr>
     </table>
     <div class="total"><span>Total</span><span>₹ 18,900</span></div>
-    All in stock at Madhurawada. For the tiles, do you want 300x300 or 600x600?`);
+    అన్నీ మాధురవాడలో స్టాక్‌లో ఉన్నాయి. టైల్స్ 300x300 కావాలా, 600x600 కావాలా?
+    <div class="en">All in stock at Madhurawada. Tiles in 300x300 or 600x600?</div>`);
   stepOn('steps-voice', 4); await wait(1800); if (!ok()) return;
-  add('out', '300x300. Send it to the site by evening.');
+  add('out', '300x300. సాయంత్రంలోగా సైట్‌కి పంపండి.<div class="en">Send it to the site by evening.</div>');
   await wait(1200); if (!ok()) return;
-  add('in', 'Confirmed. Delivery slot booked for 5 PM today. A staff member has been notified. &#9989;');
+  add('in', 'కన్ఫర్మ్ అయింది. ఈరోజు సాయంత్రం 5 గంటలకు డెలివరీ బుక్ చేశాను. &#9989;<div class="en">Confirmed. Delivery booked for 5 PM today. A staff member has been notified.</div>');
   stepOn('steps-voice', 5);
 }
 
