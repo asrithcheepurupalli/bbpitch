@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Living Lines – Voice & Photo Ordering Demo</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --orange: #E4572E;
+    --dark: #1c1c1c;
+    --ink: #222;
+    --muted: #6b6b6b;
+    --line: #e6e2dc;
+    --bg: #f6f3ee;
+    --card: #fff;
+    --green: #1f9d55;
+    --wa-bg: #e9e2d6;
+    --wa-out: #dcf8c6;
+  }
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--ink); line-height: 1.45; }
+  header { background: var(--dark); color: #fff; padding: 14px 20px; display: flex; align-items: center; gap: 12px; }
+  .logo { background: var(--orange); width: 38px; height: 38px; border-radius: 9px; display: grid; place-items: center; font-weight: 800; }
+  header h1 { font-size: 16px; } header small { color: #aaa; font-size: 12px; display: block; }
+  .tag { margin-left: auto; font-size: 11px; background: #333; color: #ffb59f; padding: 4px 10px; border-radius: 99px; }
+  main { max-width: 1100px; margin: 0 auto; padding: 22px 16px 40px; }
+  .intro { text-align: center; margin-bottom: 18px; }
+  .intro h2 { font-size: 24px; } .intro p { color: var(--muted); font-size: 14px; margin-top: 4px; }
+  .tabs { display: flex; gap: 8px; justify-content: center; margin: 18px 0; flex-wrap: wrap; }
+  .tab { border: 1px solid var(--line); background: #fff; padding: 10px 18px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; }
+  .tab.on { background: var(--orange); color: #fff; border-color: var(--orange); }
+  .grid { display: grid; grid-template-columns: 380px 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+
+  /* phone */
+  .phone { background: var(--wa-bg); border-radius: 22px; border: 8px solid #111; overflow: hidden; display: flex; flex-direction: column; height: 600px; }
+  .wa-top { background: #075e54; color: #fff; padding: 10px 14px; display: flex; align-items: center; gap: 10px; font-size: 14px; }
+  .wa-top .av { width: 32px; height: 32px; background: var(--orange); border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 12px; }
+  .wa-top small { display: block; font-size: 11px; opacity: .8; }
+  .chat { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .msg { max-width: 82%; padding: 7px 10px; border-radius: 9px; font-size: 13px; box-shadow: 0 1px 1px rgba(0,0,0,.12); animation: pop .25s ease; }
+  .msg.out { align-self: flex-end; background: var(--wa-out); }
+  .msg.in { align-self: flex-start; background: #fff; }
+  .msg .t { font-size: 10px; color: #888; text-align: right; margin-top: 2px; }
+  @keyframes pop { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .voice { display: flex; align-items: center; gap: 8px; min-width: 200px; }
+  .voice .play { width: 26px; height: 26px; border-radius: 50%; background: #075e54; color: #fff; display: grid; place-items: center; font-size: 11px; }
+  .wave { flex: 1; height: 22px; display: flex; align-items: center; gap: 2px; }
+  .wave i { display: block; width: 2px; background: #6aa89f; border-radius: 2px; }
+  .typing { color: var(--muted); font-style: italic; }
+  .quote-table { width: 100%; font-size: 12px; border-collapse: collapse; margin: 6px 0; }
+  .quote-table td { padding: 3px 0; border-bottom: 1px dotted #ddd; }
+  .quote-table td:last-child { text-align: right; white-space: nowrap; }
+  .total { font-weight: 700; display: flex; justify-content: space-between; margin-top: 4px; }
+  .photo { width: 190px; border-radius: 6px; display: block; }
+  .actions { display: flex; gap: 8px; padding: 10px; background: #f0f0f0; }
+  .btn { flex: 1; background: var(--orange); color: #fff; border: 0; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; }
+  .btn.ghost { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+  .btn:disabled { opacity: .5; cursor: default; }
+
+  /* side panel */
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+  .panel h3 { font-size: 15px; margin-bottom: 4px; }
+  .panel .sub { color: var(--muted); font-size: 12px; margin-bottom: 12px; }
+  .steps { list-style: none; counter-reset: s; }
+  .steps li { counter-increment: s; display: flex; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 13px; opacity: .35; transition: opacity .3s; }
+  .steps li.on { opacity: 1; }
+  .steps li::before { content: counter(s); flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--orange); color: #fff; display: grid; place-items: center; font-size: 11px; font-weight: 700; }
+  .steps b { display: block; }
+  .steps span { color: var(--muted); font-size: 12px; }
+  .box { margin-top: 14px; border-radius: 10px; padding: 12px; font-size: 12.5px; }
+  .box.stat { background: #fff4ef; border: 1px solid #ffd5c6; }
+  .box.ok { background: #effaf3; border: 1px solid #bfe6cd; }
+  .match { display: flex; justify-content: space-between; gap: 8px; padding: 6px 0; border-bottom: 1px dotted var(--line); font-size: 12.5px; }
+  .conf { font-size: 11px; font-weight: 700; color: var(--green); }
+  .conf.mid { color: #c58a00; }
+  .hidden { display: none; }
+  footer { text-align: center; color: var(--muted); font-size: 11.5px; margin-top: 26px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">LL</div>
+  <div><h1>Living Lines</h1><small>Voice &amp; Photo Ordering &middot; Prototype</small></div>
+  <span class="tag">Demo with sample data</span>
+</header>
+
+<main>
+  <div class="intro">
+    <h2>Customers don't type. They talk and send photos.</h2>
+    <p>Two new features for the Living Lines WhatsApp AI. Press play to watch each flow.</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab on" data-tab="voice">1 &middot; Voice-note ordering</button>
+    <button class="tab" data-tab="photo">2 &middot; Photo-to-quote</button>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="phone">
+        <div class="wa-top"><div class="av">LL</div><div>Living Lines<small>AI assistant &middot; online</small></div></div>
+        <div class="chat" id="chat"></div>
+        <div class="actions">
+          <button class="btn" id="play">&#9654; Play demo</button>
+          <button class="btn ghost" id="reset">Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <!-- VOICE -->
+      <div class="panel" id="p-voice">
+        <h3>Voice-note ordering</h3>
+        <div class="sub">For masons, plumbers and contractors who send a voice note instead of typing.</div>
+        <ul class="steps" id="steps-voice">
+          <li><div><b>Voice note received</b><span>Contractor sends a Telugu/English voice note on WhatsApp.</span></div></li>
+          <li><div><b>Speech to text</b><span>Mixed Telugu, Hindi and English is transcribed, including trade slang.</span></div></li>
+          <li><div><b>Matched to catalog SKUs</b><span>"Elbow", "CP tap", "bag" become real product codes, sizes and units.</span></div></li>
+          <li><div><b>Quote built with stock check</b><span>Price, total and availability come back in seconds.</span></div></li>
+          <li><div><b>Staff approve, customer confirms</b><span>One tap for staff. Low-confidence items get flagged.</span></div></li>
+        </ul>
+        <div class="box stat"><b>Why it matters:</b> The customers who spend the most on materials are the least likely to type a message. Quoting takes staff 10 to 15 minutes today. This takes seconds.</div>
+      </div>
+
+      <!-- PHOTO -->
+      <div class="panel hidden" id="p-photo">
+        <h3>Photo-to-quote</h3>
+        <div class="sub">Customer sends a photo of a design they like, or a competitor's quote.</div>
+        <ul class="steps" id="steps-photo">
+          <li><div><b>Photo received</b><span>Bathroom inspiration, a tile design, or a competitor's quote.</span></div></li>
+          <li><div><b>Visual search of the catalog</b><span>The AI reads style, colour, size and finish, and finds the closest products in stock.</span></div></li>
+          <li><div><b>Competitor quote comparison</b><span>If it's a quote, the AI reads the line items and offers equivalents.</span></div></li>
+          <li><div><b>Options sent with price</b><span>Best match, a budget option, and a premium option.</span></div></li>
+          <li><div><b>Showroom visit booked</b><span>Customer gets a sample or visit slot at the nearest branch.</span></div></li>
+        </ul>
+        <div class="box ok"><b>Why it matters:</b> "Do you have this?" is the most common unanswered question in a showroom. Every photo that goes unanswered is a customer who walks to a competitor.</div>
+      </div>
+
+      <div class="panel" style="margin-top:16px">
+        <h3>Catalog matches (live as the demo runs)</h3>
+        <div class="sub">Sample data for the prototype. In production, this reads Living Lines' real catalog and stock.</div>
+        <div id="matches"><div class="sub">Nothing yet. Press Play.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>Prototype for demonstration. Prices, SKUs and stock are sample values, not real Living Lines data.</footer>
+</main>
+
+<script>
+const chat = document.getElementById('chat');
+const matchesEl = document.getElementById('matches');
+const playBtn = document.getElementById('play');
+let mode = 'voice', running = false, token = 0;
+
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const now = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+const bars = () => Array.from({ length: 28 }, () => `<i style="height:${4 + Math.random() * 16}px"></i>`).join('');
+
+function add(cls, html) {
+  const d = document.createElement('div');
+  d.className = 'msg ' + cls;
+  d.innerHTML = html + `<div class="t">${now()}</div>`;
+  chat.appendChild(d);
+  chat.scrollTop = chat.scrollHeight;
+  return d;
+}
+function stepOn(listId, n) {
+  document.querySelectorAll('#' + listId + ' li').forEach((li, i) => li.classList.toggle('on', i < n));
+}
+function setMatches(rows) {
+  matchesEl.innerHTML = rows.map(r =>
+    `<div class="match"><span>${r.name}<br><small style="color:#888">${r.note}</small></span>` +
+    `<span style="text-align:right">${r.price}<br><span class="conf ${r.mid ? 'mid' : ''}">${r.conf}</span></span></div>`).join('');
+}
+
+function reset() {
+  token++; running = false;
+  chat.innerHTML = '';
+  matchesEl.innerHTML = '<div class="sub">Nothing yet. Press Play.</div>';
+  stepOn('steps-voice', 0); stepOn('steps-photo', 0);
+  playBtn.disabled = false; playBtn.innerHTML = '&#9654; Play demo';
+}
+
+async function voiceDemo(my) {
+  const ok = () => my === token;
+  add('out', `<div class="voice"><div class="play">&#9654;</div><div class="wave">${bars()}</div><span style="font-size:11px">0:14</span></div>`);
+  stepOn('steps-voice', 1); await wait(1400); if (!ok()) return;
+  const typing = add('in', '<span class="typing">Listening to your voice note...</span>');
+  stepOn('steps-voice', 2); await wait(1800); if (!ok()) return;
+  typing.remove();
+  add('in', `<b>I heard:</b><br><i>"Anna, 20 bags cement, 50 elbow 1 inch, 10 CP taps, and 5 bathroom floor tiles boxes anti-skid."</i>`);
+  setMatches([
+    { name: 'Cement 50kg bag', note: 'qty 20', price: '₹ 7,600', conf: '98% match' },
+    { name: 'PVC elbow 1" (pack)', note: 'qty 50', price: '₹ 1,250', conf: '94% match' },
+    { name: 'CP bib tap, chrome', note: 'qty 10', price: '₹ 4,800', conf: '91% match' },
+    { name: 'Anti-skid floor tile 300x300 (box)', note: 'qty 5', price: '₹ 5,250', conf: '72% match: confirm size', mid: true },
+  ]);
+  stepOn('steps-voice', 3); await wait(1800); if (!ok()) return;
+  add('in', `Here's your quote:
+    <table class="quote-table">
+      <tr><td>Cement 50kg &times; 20</td><td>₹ 7,600</td></tr>
+      <tr><td>PVC elbow 1" &times; 50</td><td>₹ 1,250</td></tr>
+      <tr><td>CP bib tap &times; 10</td><td>₹ 4,800</td></tr>
+      <tr><td>Anti-skid tile box &times; 5</td><td>₹ 5,250</td></tr>
+    </table>
+    <div class="total"><span>Total</span><span>₹ 18,900</span></div>
+    All in stock at Madhurawada. For the tiles, do you want 300x300 or 600x600?`);
+  stepOn('steps-voice', 4); await wait(1800); if (!ok()) return;
+  add('out', '300x300. Send it to the site by evening.');
+  await wait(1200); if (!ok()) return;
+  add('in', 'Confirmed. Delivery slot booked for 5 PM today. A staff member has been notified. &#9989;');
+  stepOn('steps-voice', 5);
+}
+
+const tileSvg = `<svg class="photo" viewBox="0 0 190 130" xmlns="http://www.w3.org/2000/svg">
+  <rect width="190" height="130" fill="#d9d2c7"/>
+  ${Array.from({ length: 6 }, (_, r) => Array.from({ length: 8 }, (_, c) =>
+    `<rect x="${c * 24 - (r % 2) * 12}" y="${r * 22}" width="22" height="20" rx="1" fill="${(r + c) % 3 === 0 ? '#bfae96' : '#cdbfa9'}"/>`).join('')).join('')}
+  <rect x="120" y="55" width="55" height="70" fill="#f2f2f2" stroke="#999"/>
+  <circle cx="148" cy="75" r="9" fill="#ddd" stroke="#aaa"/>
+  <rect x="15" y="90" width="80" height="30" rx="14" fill="#fafafa" stroke="#bbb"/>
+</svg>`;
+
+async function photoDemo(my) {
+  const ok = () => my === token;
+  add('out', tileSvg + '<div style="margin-top:4px">Do you have tiles like this? Marble look, beige.</div>');
+  stepOn('steps-photo', 1); await wait(1400); if (!ok()) return;
+  const typing = add('in', '<span class="typing">Searching our catalog...</span>');
+  stepOn('steps-photo', 2); await wait(2000); if (!ok()) return;
+  typing.remove();
+  setMatches([
+    { name: 'Vitrified Marble-look Beige 600x1200', note: 'Best match · RAK Ceramics', price: '₹ 78/sqft', conf: '93% visual match' },
+    { name: 'Glossy Marble Beige 600x600', note: 'Budget option · Kajaria', price: '₹ 52/sqft', conf: '84% visual match' },
+    { name: 'Italian Marble-look Premium 800x1600', note: 'Premium option · Somany', price: '₹ 125/sqft', conf: '80% visual match', mid: true },
+  ]);
+  add('in', `Yes, here are 3 options close to your photo:
+    <table class="quote-table">
+      <tr><td><b>Best match</b> RAK 600x1200</td><td>₹ 78/sqft</td></tr>
+      <tr><td><b>Budget</b> Kajaria 600x600</td><td>₹ 52/sqft</td></tr>
+      <tr><td><b>Premium</b> Somany 800x1600</td><td>₹ 125/sqft</td></tr>
+    </table>All available at Madhurawada. What's the room size?`);
+  stepOn('steps-photo', 4); await wait(2000); if (!ok()) return;
+  add('out', '<div style="font-size:11px;color:#666">[sends photo of a competitor quote]</div>' +
+    '<div style="background:#fff;border:1px solid #ccc;padding:6px;font-size:11px;margin-top:4px">Marble tile 600x1200 &mdash; ₹ 85/sqft<br>Wall tile 300x450 &mdash; ₹ 40/sqft</div>' +
+    'Another shop quoted this. Can you match?');
+  stepOn('steps-photo', 3); await wait(1800); if (!ok()) return;
+  add('in', `I read the quote. Equivalents we carry:
+    <table class="quote-table">
+      <tr><td>Marble 600x1200 RAK</td><td>₹ 78/sqft</td></tr>
+      <tr><td>Wall tile 300x450 Kajaria</td><td>₹ 38/sqft</td></tr>
+    </table>That's about 8% lower on the floor tile. Want a free sample, or a showroom visit tomorrow?`);
+  await wait(1500); if (!ok()) return;
+  add('out', 'Visit tomorrow 11 AM.');
+  await wait(1000); if (!ok()) return;
+  add('in', 'Booked. See you at Madhurawada at 11 AM. &#9989;');
+  stepOn('steps-photo', 5);
+}
+
+async function play() {
+  if (running) return;
+  reset();
+  running = true; const my = token;
+  playBtn.disabled = true; playBtn.textContent = 'Playing...';
+  if (mode === 'voice') await voiceDemo(my); else await photoDemo(my);
+  if (my === token) { running = false; playBtn.disabled = false; playBtn.innerHTML = '&#8635; Replay'; }
+}
+
+document.getElementById('play').addEventListener('click', play);
+document.getElementById('reset').addEventListener('click', reset);
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === t));
+  mode = t.dataset.tab;
+  document.getElementById('p-voice').classList.toggle('hidden', mode !== 'voice');
+  document.getElementById('p-photo').classList.toggle('hidden', mode !== 'photo');
+  reset();
+}));
+</script>
+</body>
+</html>
